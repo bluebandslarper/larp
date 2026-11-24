@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#050505">
+  <title>LARP Wallet</title>
+  <style>
+    :root{--navy:#173b56;--blue:#1676d2;--pale:#eaf3fb;--ink:#161b22;--muted:#858b95;--line:#eceef2;--bg:#f2f3f8;--green:#169b82;--red:#c34d4d;--logo-size:42px}
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    button,input,select{font:inherit} button{cursor:pointer}
+    .app{max-width:520px;margin:auto;min-height:100vh;background:#f2f3f8;box-shadow:0 0 35px #17354a0b;position:relative;padding-bottom:84px}
+    header{background:#f2f3f8;color:var(--ink);padding:18px 20px 4px;display:grid;grid-template-columns:1fr auto 1fr;grid-template-rows:auto auto;align-items:center;row-gap:3px;column-gap:10px}
+    .brand{display:contents}.logo{width:var(--logo-size);height:var(--logo-size);border-radius:50%;background:#fff;display:grid;place-items:center;overflow:hidden;font-size:21px;font-weight:700;flex:none;box-shadow:0 2px 12px #182b4210;grid-column:2;grid-row:1}.logo img{width:100%;height:100%;object-fit:contain;padding:5px}.brand-name{display:block;grid-column:2;grid-row:2;text-align:center;font-size:11px;font-weight:650;color:#747b85;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.subbrand{display:none}
+    .profile{width:42px;height:42px;border:0;border-radius:50%;background:#fff;color:#343a40;font-weight:700;box-shadow:0 2px 12px #182b4210;grid-column:1;grid-row:1}
+    .header-tools{grid-column:3;grid-row:1;justify-self:end;display:flex;gap:8px}.header-tool{width:42px;height:42px;border:0;border-radius:50%;background:#fff;color:#343a40;font-size:18px;box-shadow:0 2px 12px #182b4210}
+    nav{position:fixed;z-index:5;bottom:12px;left:50%;transform:translateX(-50%);width:min(480px,calc(100% - 28px));display:flex;justify-content:space-around;gap:2px;padding:8px 7px;background:#ffffffed;border:1px solid #e9eaf0;border-radius:28px;box-shadow:0 8px 30px #1b2d4518;backdrop-filter:blur(16px);overflow:auto}
+    nav button{border:0;background:transparent;color:#5d626b;padding:8px 10px;border-radius:20px;white-space:nowrap;font-size:11px;font-weight:650;min-width:64px}nav button:before{display:block;font-size:19px;line-height:1.25;margin-bottom:2px}nav button[data-view="home"]:before{content:"◉"}nav button[data-view="payments"]:before{content:"⇄"}nav button[data-view="transactions"]:before{content:"▤"}nav button[data-view="settings"]:before{content:"⚙"}
+    nav button.active,nav button:hover{background:#e8edf5;color:#1476d2}
+    main{padding:18px 16px 30px;max-width:500px;margin:auto}.view{display:none}.view.active{display:block}
+    .welcome{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:20px}.welcome h1{font-size:23px;margin:0 0 4px;letter-spacing:-.7px}.muted{color:var(--muted)}.small{font-size:12px}
+    .home-top{display:flex;justify-content:center;gap:0;margin:12px auto 34px;background:#e5e6ec;border-radius:28px;padding:4px;width:218px}.home-top button{border:0;background:transparent;border-radius:24px;padding:12px 22px;font-size:13px;font-weight:700;color:#42464e}.home-top button.active{background:#fff;color:#1476d2;box-shadow:0 2px 8px #1b2d4510}
+    .balance-wrap{text-align:center;margin-bottom:34px}.balance-label{font-size:12px;color:#858b95}.balance{font-size:36px;font-weight:500;letter-spacing:-1.3px;margin:7px 0 0;color:#080b10}.account-meta{font-size:12px;color:#8b9099}
+    .overview-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px}.overview-card{background:#fff;border-radius:25px;padding:15px 14px;min-height:170px;text-align:center}.overview-card .eyebrow{font-size:11px;color:#888d96}.overview-card strong{display:block;font-size:14px;margin:2px 0 10px}.bubble-chart{height:82px;display:flex;align-items:end;justify-content:center;gap:0}.bubble{display:block;border-radius:50%;width:68px;height:68px;background:#1676d2}.bubble.b2{width:48px;height:48px;background:#ff756e;margin-left:-2px}.bubble.b3{width:25px;height:25px;background:#7bd3ef;margin-left:-2px}.bar-chart{height:82px;display:flex;align-items:end;justify-content:center;gap:9px}.bar-chart i{display:block;width:32px;border-radius:5px 5px 0 0;background:#2eaa91;height:78px}.bar-chart i+ i{height:54px;background:#292929}
+    .upcoming{background:#fff;border-radius:24px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;margin:14px 0 34px}.upcoming .label{font-weight:650}.upcoming .sub{font-size:12px;color:#8b9099}.upcoming strong{font-size:16px}
+    .section-head{display:flex;justify-content:space-between;align-items:center;margin:0 0 10px;padding:0 4px}.section-head h2{font-size:16px;margin:0}.text-btn{border:0;background:none;color:var(--blue);font-weight:700;padding:8px}
+    .transactions{background:#fff;border-radius:22px;overflow:hidden}.tx{display:flex;align-items:center;gap:11px;padding:13px 15px;border-bottom:1px solid #f0f1f4;touch-action:pan-y;user-select:none}.tx:last-child{border-bottom:0}.tx-icon{width:35px;height:35px;border-radius:50%;background:#eaf1fb;display:grid;place-items:center;font-size:15px;flex:none}.tx-info{flex:1;min-width:0}.tx-title{font-weight:600}.tx-date{font-size:11px;color:var(--muted)}.tx-amount{font-weight:700;white-space:nowrap}.positive{color:var(--green)}.negative{color:var(--ink)}
+    .panel{border:1px solid var(--line);border-radius:20px;padding:19px;background:#fff;margin-bottom:15px}.panel h2{font-size:18px;margin:0 0 5px}.panel p{margin:0 0 18px;color:var(--muted);font-size:13px}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field{display:flex;flex-direction:column;gap:6px}.field.full{grid-column:1/-1}.field label{font-size:12px;font-weight:700;color:#526573}.field input,.field select{border:1px solid #dce4e9;border-radius:12px;padding:12px;background:#fff;outline:none;min-width:0}.field input:focus,.field select:focus{border-color:#2988bd;box-shadow:0 0 0 3px #2988bd18}
+    .primary{background:var(--blue);color:#fff;border:0;border-radius:12px;padding:12px 18px;font-weight:750}.secondary{background:#edf1f6;color:var(--navy);border:0;border-radius:11px;padding:11px 15px;font-weight:700}.form-actions{display:flex;gap:10px;align-items:center;margin-top:17px}.notice{background:#f1f5fa;border-left:3px solid #4c9bc2;padding:12px 14px;border-radius:7px;color:#536a78;font-size:12px;margin-top:15px}
+    .settings-row{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:15px 0;border-bottom:1px solid var(--line)}.settings-row:last-child{border-bottom:0}.settings-row strong{display:block}.settings-row small{color:var(--muted)}.logo-preview{width:58px;height:58px;border-radius:16px;background:var(--pale);display:grid;place-items:center;overflow:hidden;font-size:25px;color:var(--navy)}.logo-preview img{width:100%;height:100%;object-fit:contain;padding:4px}
+    .empty{padding:30px;text-align:center;color:var(--muted)}.toast{position:fixed;bottom:95px;left:50%;transform:translateX(-50%);background:#172b3a;color:white;padding:11px 17px;border-radius:10px;box-shadow:0 8px 25px #0002;display:none;z-index:10}.pill{font-size:11px;color:#47738c;background:#eaf3f8;padding:4px 8px;border-radius:20px;font-weight:700}
+    .tx-menu-backdrop{position:fixed;inset:0;background:#11182755;z-index:20;display:grid;place-items:center;padding:20px}.tx-menu{background:#fff;border-radius:20px;padding:20px;width:min(320px,100%);box-shadow:0 18px 60px #0003}.tx-menu h3{margin:0 0 5px}.tx-menu p{margin:0 0 15px;color:#777;font-size:12px}.tx-menu button{width:100%;padding:12px;border:0;border-radius:11px;margin-top:8px;background:#edf2f8;font-weight:700;color:#183b56}.tx-menu button.danger{background:#fff0f0;color:#a33}
+
+    .balance-edit-trigger{display:block;margin:7px auto 0;padding:0 8px;border:0;background:none;line-height:1.45}.balance-hint{font-size:11px;color:#a2a6ae;margin-top:2px}
+    #payments{padding-top:0}.payments-top{text-align:center;margin:0 0 26px}.payments-top h1{font-size:18px;font-weight:700;margin:0}.pay-actions{display:flex;justify-content:center;gap:15px;margin:0 0 22px}.pay-actions button{background:#087be2;border:0;color:#fff;border-radius:30px;padding:12px 25px;min-width:122px;box-shadow:0 3px 7px #1676d218;font-size:15px}.pay-actions span{font-size:20px;vertical-align:-1px;margin-right:7px}.pay-section-head{margin-bottom:8px}.pay-section-head h2,.recent-pay-head h2{font-size:15px}.quick-pay{display:flex;gap:13px;overflow-x:auto;padding:3px 2px 16px;scrollbar-width:none}.quick-pay::-webkit-scrollbar{display:none}.quick-contact{border:0;background:none;flex:0 0 72px;display:flex;flex-direction:column;align-items:center;gap:6px;padding:0;color:#161b22;font-size:12px}.contact-avatar{width:61px;height:61px;border-radius:50%;display:grid;place-items:center;background:#d1eff7;color:#1d80a7;font-size:22px;font-weight:500;box-shadow:0 2px 7px #0000000a}.quick-contact:nth-child(2) .contact-avatar{background:#f7d2e3;color:#b04b7c}.quick-contact:nth-child(3) .contact-avatar{background:#c8efe8;color:#218b7b}.quick-contact.add-contact .contact-avatar{background:#fff;color:#222;font-size:34px;font-weight:300}.scheduled-card{width:100%;background:#fff;border:0;border-radius:12px;display:flex;align-items:center;gap:14px;padding:17px 16px;margin:9px 0 23px;text-align:left;box-shadow:0 3px 12px #0000000a}.scheduled-icon{font-size:26px;color:#1476d2;width:32px;text-align:center}.scheduled-card strong{display:block;font-size:14px}.scheduled-card small{display:block;color:#969ca5;font-size:12px;margin-top:2px}.scheduled-arrow{margin-left:auto;font-size:22px;color:#a6abb2}.recent-pay-head{margin-bottom:11px}.recent-pay-list{display:flex;flex-direction:column;gap:7px}.recent-pay-item{width:100%;border:0;background:#fff;border-radius:9px;display:flex;align-items:center;gap:12px;text-align:left;padding:15px 13px;min-height:70px}.recent-pay-avatar{width:37px;height:37px;border-radius:50%;background:#eaf3fc;display:grid;place-items:center;color:#2776c6;font-size:16px;flex:none}.recent-pay-item strong{display:block;font-weight:500;font-size:14px}.recent-pay-item small{display:block;color:#969ca5;font-size:12px;margin-top:3px}.recent-pay-empty{padding:23px 15px;background:#fff;border-radius:10px;color:#9298a0;font-size:13px}.payment-form-container{margin-top:25px}.payment-form-container[hidden]{display:none}.payment-form-container .panel{box-shadow:0 4px 16px #0000000a}
+    @media(max-width:650px){header{padding:16px 18px 8px}main{padding:18px 14px 28px}.welcome h1{font-size:22px}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.panel{padding:16px}.overview-card{min-height:160px;padding:13px 9px}.balance{font-size:35px}}
+
+    /* Midnight edition: original wallet interface */
+    :root{color-scheme:dark;--navy:#232427;--blue:#389bff;--pale:#24272b;--ink:#f7f7f8;--muted:#99999f;--line:#363639;--bg:#050505;--green:#67d6b1;--red:#ff8d90}
+    body,.app,header{background:#050505;color:var(--ink)}.app{box-shadow:none;min-height:100dvh;padding-bottom:108px}
+    header{padding:23px 21px 10px;min-height:102px}.logo,.profile,.header-tool{background:#202023;color:white;border:1px solid #38383b;box-shadow:none}.profile{font-size:0}.profile:after{content:'♙';font-size:26px}.brand-name{color:#f5f5f5;font-size:13px}.logo{background:#27282a}.logo img{padding:0}
+    main{padding:20px 17px 45px}.view{display:none}.view.active{display:block;animation:pageIn .3s cubic-bezier(.2,.7,.2,1) both}@keyframes pageIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+    nav{bottom:max(12px,env(safe-area-inset-bottom));width:min(500px,calc(100% - 28px));border-radius:36px;background:linear-gradient(160deg,#333335f2,#222224f5);border:1px solid #48484b;box-shadow:0 7px 25px #000b;padding:7px 5px;overflow:visible}
+    nav button{color:#f1f1f1;font-size:11px;font-weight:500;min-width:0;flex:1;padding:7px 1px;border-radius:29px;transition:background .25s,color .25s}nav button:before{display:none!important}.navico{display:block;font-size:27px;line-height:1.35;margin-bottom:1px;font-weight:400}nav button.active,nav button:hover{background:#101012;color:var(--blue)}
+    .welcome h1,.page-title{font-size:22px;font-weight:650;text-align:center;margin:0 0 25px}.home-top{background:#242426}.home-top button{color:#ddd}.home-top button.active{background:#414145;color:#fff}.balance-label{font-size:14px}.balance{font-size:43px;color:#fff}.balance-hint{color:#6d6d71}.overview-card,.upcoming,.transactions,.panel,.scheduled-card,.recent-pay-item,.recent-pay-empty,.list-card{background:#1d1d1f;border-color:#303034;box-shadow:none}.overview-card{border-radius:26px}.upcoming{border-radius:23px}.tx{border-bottom-color:#353538}.tx-icon,.recent-pay-avatar{background:#627d84;color:#d6f4ff}.negative{color:#fff}.section-head h2{color:#aaaab0}.text-btn{color:var(--blue)}.panel{border:0;border-radius:26px}.panel h2{color:#fff}.panel p{color:#aaa}.field label{color:#c9c9ce}.field input,.field select{background:#2d2d30;color:#fff;border:1px solid #47474b}.field input:focus,.field select:focus{border-color:var(--blue);box-shadow:0 0 0 3px #389bff24}.primary{background:var(--blue);color:#081421;border-radius:24px}.secondary{background:#38383c;color:#fff;border-radius:22px}.notice{background:#28292d;color:#b6c6d4}.pill{background:#263747;color:#b9e2ff}.tx-menu{background:#242427;color:white}.tx-menu button{background:#37373b;color:white}.tx-menu button.danger{background:#492d32;color:#ffb0b6}.toast{background:#38383c;color:white}.logo-preview{background:#36383c;color:white}
+    #payments{padding-top:0}.payments-top{margin-bottom:54px}.payments-top h1{font-size:21px}.pay-actions{gap:14px;margin-bottom:35px}.pay-actions button{background:var(--blue);border-radius:60px;padding:14px 17px;flex:1;min-width:0;font-size:16px;font-weight:650;color:#fff}.pay-actions span{font-size:21px}.pay-section-head h2,.recent-pay-head h2{font-size:17px}.quick-pay{gap:20px;margin:15px 0 19px}.quick-contact{color:#f2f2f2;font-size:12px;flex-basis:80px}.contact-avatar{background:#657e86;color:#d4f4ff;width:65px;height:65px;box-shadow:none}.quick-contact:nth-child(2) .contact-avatar,.quick-contact:nth-child(3) .contact-avatar{background:#5d777f;color:#d4f4ff}.quick-contact.add-contact .contact-avatar{background:#1f1f21;color:var(--blue)}.scheduled-card{border-radius:27px;padding:20px;margin:0 0 30px}.scheduled-card strong{font-size:17px}.scheduled-card small{font-size:13px;color:#999}.scheduled-icon{font-size:27px;color:var(--blue)}.recent-pay-list{background:#1d1d1f;border-radius:26px;gap:0;overflow:hidden}.recent-pay-item{border-radius:0;border-bottom:1px solid #353538;min-height:83px;padding:14px 16px}.recent-pay-item:last-child{border:0}.recent-pay-item strong{color:#fff;font-size:16px}.recent-pay-item small{color:#999;font-size:13px}.recent-pay-avatar{width:40px;height:40px}.payment-form-container .panel{background:#222224}
+    .accounts-total{text-align:center;padding:18px 0 44px;color:#999;font-size:14px}.accounts-total button{display:block;margin:8px auto 0;background:none;border:0;color:#fff;font-size:39px;font-weight:450;letter-spacing:-1px}.group-label{color:#999;font-size:18px;font-weight:650;margin:30px 5px 13px}.list-card{border-radius:28px;overflow:hidden}.list-row{width:100%;display:flex;align-items:center;gap:15px;text-align:left;border:0;background:transparent;color:white;min-height:78px;padding:15px 18px;font-size:17px}.list-row:not(:last-child) .row-copy{border-bottom:1px solid #3b3b3d;padding-bottom:21px;margin-bottom:-21px}.row-symbol{width:40px;flex:none;text-align:center;color:#4ba9ff;font-size:26px}.row-copy{flex:1;min-width:0}.row-copy small{display:block;color:#999;font-size:13px;margin-top:4px}.list-row strong{font-size:17px;font-weight:600}.blue-plus{font-size:27px;color:var(--blue)}.chevron{margin-left:auto;color:#6b6b71;font-size:28px}.wide-row{width:100%;display:flex;align-items:center;gap:18px;padding:22px 20px;margin:12px 0;border:0;border-radius:26px;background:#1d1d1f;color:#fff;text-align:left;font-size:18px}.wide-row>span:first-child{color:#55a9ff;font-size:23px}.hero-title{font-size:34px;margin:68px 6px 58px;letter-spacing:-1.3px}.segmented{display:flex;margin:30px auto 0;background:#1c1c1e;border-radius:32px;padding:4px;width:max-content;max-width:100%}.segmented button{border:0;border-radius:28px;background:none;color:#fff;padding:12px 29px;font-size:15px}.segmented button.selected{background:#353538;color:var(--blue)}#support .hero-title{margin:58px 0 22px}#support .group-label{color:#eee;margin-top:26px}
+    .sheet-head{display:flex;align-items:center;justify-content:center;position:relative;min-height:65px;margin:-2px 0 20px}.sheet-head h1{font-size:21px;margin:0}.round-close{position:absolute;right:0;top:0;width:49px;height:49px;border-radius:50%;border:1px solid #49494d;background:#2c2c2e;color:white;font-size:30px;font-weight:300}.settings-links{display:flex;flex-direction:column;gap:9px;margin:22px 0 30px}.settings-links button{background:#2b2b2e;border:0;border-radius:24px;padding:20px;color:#fff;font-size:17px;text-align:left}.settings-links span{float:right;color:#777}
+    .payment-choices{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}.choice{width:100%;min-height:93px;border:0;background:#2b2b2e;border-radius:27px;padding:20px;display:flex;align-items:center;gap:18px;text-align:left;color:#fff;font-size:18px;font-weight:650}.choice-icon{font-size:25px;color:var(--blue);width:30px}.choice small{display:block;color:#999;font-weight:400;font-size:14px;margin-top:3px}.entry-back{height:75px;position:relative}.entry-back .round-close{left:0;right:auto}.entry-title{text-align:center;font-size:32px;margin:0 0 28px}.payid-tabs{margin:0 auto 50px}.entry-field{margin:0 15px}.entry-field label{display:block;color:#aaa;margin-bottom:10px}.entry-field input{width:100%;border:0;border-bottom:1px solid #5d5d60;background:transparent;color:white;font-size:22px;padding:13px 0;outline:none}.contact-find{display:block;margin:60px auto 30px;border:0;background:none;color:var(--blue);font-size:18px}.continue-btn{display:block;width:calc(100% - 30px);margin:65px auto 0;padding:16px;border:0;border-radius:32px;background:var(--blue);color:white;font-size:17px}.continue-btn:disabled{background:#38383c;color:#737378}
+    @media(prefers-reduced-motion:reduce){.view.active{animation:none}nav button{transition:none}}
+    @media(max-width:380px){.pay-actions button{font-size:14px}.list-row{padding:14px 12px}.choice{padding:15px}.hero-title{font-size:29px}}
+
+    /* Fictional PayID walkthrough */
+    .flow-screen{min-height:calc(100dvh - 155px);position:relative;padding:2px 4px 24px;display:flex;flex-direction:column;align-items:stretch;gap:22px}.flow-top{display:flex;justify-content:space-between}.flow-icon{border:1px solid #48484d;background:#303033;color:#fff;border-radius:50%;width:48px;height:48px;font-size:26px}.flow-title{text-align:center;font-size:34px;line-height:1.12;margin:12px 0 16px;letter-spacing:-.6px}.flow-card{border-radius:27px;background:#2c2c2f;padding:24px 18px;text-align:center}.flow-card .caption{color:#a0a0a7;font-size:13px}.flow-card .value{font-size:21px;font-weight:650;overflow-wrap:anywhere}.flow-card .caption:not(:first-child){margin-top:20px}.flow-spacer{flex:1;min-height:28px}.flow-primary{width:100%;border:0;border-radius:36px;padding:16px;background:#3298fa;color:white;font-size:19px}.flow-primary:disabled{background:#414145;color:#8d8d94}.flow-input{width:100%;border:0;border-bottom:1px solid #626268;outline:none;background:transparent;color:white;text-align:center;padding:8px;font-size:21px}.flow-input:focus{border-color:#3298fa}.flow-amount{background:transparent;border:0;color:#fff;width:100%;text-align:center;font-size:54px;outline:none}.flow-amount::placeholder{color:#6e6e74}.flow-link{border:0;background:none;color:#3298fa;font-size:17px;padding:10px}.flow-avatar{height:78px;width:78px;border-radius:50%;background:#607780;color:#d0e9f4;font-size:29px;display:grid;place-items:center;margin:10px auto}.flow-sub{text-align:center;color:#a2a2aa;font-size:13px}.flow-success{width:90px;height:90px;border:6px solid #149b80;color:#149b80;border-radius:50%;display:grid;place-items:center;font-size:55px;margin:40px auto 14px}.flow-logo{display:flex;justify-content:center;align-items:center;min-height:45px}.flow-logo img{max-width:130px;max-height:48px;object-fit:contain}.flow-switch{display:flex;justify-content:space-between;align-items:center;background:#2c2c2f;border-radius:24px;padding:14px 18px}.flow-switch input{accent-color:#3298fa;width:23px;height:23px}.flow-small{color:#aaa;font-size:12px;text-align:center}.flow-receipt{font-size:14px;text-align:center;color:#bfc0c6;line-height:1.6}.flow-receipt strong{color:#fff}.flow-notice{font-size:12px;color:#a5a5ac;text-align:center}
+    .view.active{animation:pageIn .23s ease-out both}@keyframes pageIn{from{opacity:.25;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}@media(prefers-reduced-motion:reduce){.view.active{animation:none}}
+  
+    .ui-svg{width:1.35em;height:1.35em;display:inline-block;vertical-align:middle;flex-shrink:0}.navico .ui-svg{width:26px;height:26px}.choice-icon .ui-svg{width:29px;height:29px}.scheduled-icon .ui-svg{width:28px;height:28px}.pay-actions .ui-svg{width:23px;height:23px}.flow-icon .ui-svg{width:27px;height:27px}.flow-success .ui-svg{width:62px;height:62px}.settings-links button .ui-svg{width:23px;height:23px;margin-right:9px}.balance{cursor:default}.flow-screen{animation:flowEnter .22s ease both}@keyframes flowEnter{from{opacity:.65;transform:translateX(9px)}to{opacity:1;transform:translateX(0)}}@media(prefers-reduced-motion:reduce){.flow-screen{animation:none}}
+
+    /* Clear, tactile icons and distraction-free editable fields. */
+    .header-card-button{display:grid;place-items:center;padding:7px}
+    .mini-debit-card{width:32px;height:25px;display:block;filter:drop-shadow(0 1px 2px #0009)}
+    .visually-hidden{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+    .entry-field-plain{margin:0 auto;width:min(82%,330px)}
+    .entry-field-plain input{display:block;width:100%;height:66px;padding:8px 6px;border:0!important;border-bottom:0!important;border-radius:12px!important;background:transparent!important;box-shadow:none!important;color:#fff;text-align:center;font-size:27px;letter-spacing:.25px;outline:none;caret-color:#3499ff}
+    .entry-field-plain input:focus{border:0!important;box-shadow:none!important;outline:none}
+    .flow-name-input{height:47px;padding:5px 7px;border:0!important;border-bottom:0!important;box-shadow:none!important;outline:none!important;background:transparent!important;caret-color:#3298fa;font-weight:650;font-size:21px}
+    .flow-name-input:focus{border:0!important;border-bottom:0!important;outline:none!important;box-shadow:none!important}
+    .flow-verify-note{font-size:11px;color:#939399}
+    .flow-sim-text{align-self:center;text-align:center;background:none;border:0;box-shadow:none;padding:0 10px;font-size:13px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}
+    .flow-sim-pill{align-self:center;color:#aaaeb6;background:#2d2d32;border:1px solid #48484c;padding:7px 13px;border-radius:18px;font-size:11px;letter-spacing:.2px;line-height:1.3;text-align:center}
+    .flow-receipt-pill{margin:2px auto -20px;font-size:11px;letter-spacing:.3px}
+    .flow-sim-pill,.flow-receipt-pill,.flow-notice{background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;padding:0 10px!important;color:var(--simulation-text-color,#aeb7c4)!important;text-align:center;line-height:1.5}
+    #settings .notice{background:transparent;border:0;border-radius:0;box-shadow:none;padding:0;color:var(--simulation-text-color,#aeb7c4)}
+
+/* Transaction details and editor */
+.tx-detail-page{padding:4px 4px 25px;text-align:center}.tx-detail-head{display:flex;justify-content:space-between;margin-bottom:18px}.tx-detail-icon{height:50px;width:50px;border-radius:50%;background:#242427;border:1px solid #414145;color:#fff;display:grid;place-items:center;font-size:24px}.tx-merchant-icon{width:66px;height:66px;border-radius:16px;background:#637d86;color:#d9f2ff;display:grid;place-items:center;margin:10px auto 25px;font-size:22px}.tx-detail-edit{color:#fff;cursor:pointer;flex-shrink:0}.tx-detail-amount{font-size:43px;font-weight:450;margin:0 0 14px}.tx-detail-name{font-size:22px;font-weight:650;margin:0 0 4px}.tx-detail-date{color:#99999f;font-size:14px}.tx-category{display:inline-block;border-radius:30px;background:#29292d;color:#ddd;padding:13px 24px;margin:30px 0 15px;font-weight:600}.tx-tags{display:block;border:0;background:#082d4a;color:#a6dbff;padding:12px 20px;border-radius:30px;margin:0 auto 30px;font-size:16px}.tx-details-card{background:#1e1e20;border-radius:27px;padding:22px 20px;margin:25px 0 14px;line-height:1.55}.tx-details-card .tx-muted{color:#99999f;font-size:13px}.tx-details-card .tx-value{font-size:16px;overflow-wrap:anywhere}.tx-detail-location{color:#a6dbff;font-size:16px;margin:15px 0 20px;overflow-wrap:anywhere}.tx-editor-backdrop{position:fixed;inset:0;background:#000b;z-index:300;display:flex;align-items:center;justify-content:center;padding:16px}.tx-editor{background:#222225;border:1px solid #424246;border-radius:28px;padding:23px;width:min(460px,100%);max-height:90dvh;overflow:auto;box-shadow:0 25px 75px #000a}.tx-editor h2{margin:0 0 16px;font-size:21px}.tx-editor label{display:block;font-size:13px;color:#b5b5ba;margin:13px 0 6px}.tx-editor input,.tx-editor select{box-sizing:border-box;width:100%;border:1px solid #4b4b50;background:#303034;color:white;padding:13px;border-radius:12px;font:inherit;color-scheme:dark}.tx-editor .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}.tx-editor .actions{display:flex;gap:10px;margin-top:20px}.tx-editor .actions button{flex:1;border:0;border-radius:20px;padding:13px;color:white;background:#3b3b3f}.tx-editor .actions button:last-child{background:#3298fa}.tx-editor .tx-edit-error{color:#ff9d9d;font-size:13px;margin:8px 0}.tx-editor .actions{position:sticky;bottom:-23px;background:#222225;padding:12px 0 4px;z-index:1}.tx-editor .now{border:0;border-radius:12px;background:#143a5a;color:#8acbff;padding:11px 15px;margin-top:8px}.tx-detail-demo{color:var(--simulation-text-color,#aeb7c4);font-size:12px;text-align:center;margin-top:24px}
+
+/* Seamless transparent header logo */
+header .brand-name{display:none!important}
+header .logo{border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;overflow:visible!important}
+header .logo img{padding:0!important;object-fit:contain!important}
+
+/* Final visual polish: consistent geometry, motion, touch targets and safe areas. */
+:root{--motion-fast:160ms;--motion-page:240ms;--ease-premium:cubic-bezier(.22,1,.36,1)}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;scroll-padding-bottom:110px}
+body{overflow-x:hidden;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+.app{width:100%;overflow-x:clip;padding-bottom:calc(104px + env(safe-area-inset-bottom,0px))}
+header{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px));row-gap:0}
+header .logo{justify-self:center;align-self:center;line-height:1;min-width:0;min-height:0}
+header .logo img{display:block;width:100%;height:100%;object-position:center}
+.header-tools{align-items:center}.profile,.header-tool{display:grid;place-items:center;flex-shrink:0}
+main{width:100%;min-width:0;padding-left:max(17px,env(safe-area-inset-left,0px));padding-right:max(17px,env(safe-area-inset-right,0px))}
+.view.active{animation:premiumPageIn var(--motion-page) var(--ease-premium) both}
+@keyframes premiumPageIn{from{opacity:0;transform:translate3d(0,7px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+.flow-screen{animation:none!important;min-width:0}
+nav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));align-items:center;overflow:hidden;bottom:calc(10px + env(safe-area-inset-bottom,0px));max-width:500px;isolation:isolate}
+nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:56px;min-width:0;padding:6px 2px;line-height:1.15;transition:background-color var(--motion-fast) ease,color var(--motion-fast) ease}
+nav .navico{display:grid;place-items:center;min-height:29px;line-height:1;margin:0}
+nav .navico .ui-svg{display:block;width:25px;height:25px}
+button{touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:background-color var(--motion-fast) ease,color var(--motion-fast) ease,opacity var(--motion-fast) ease,border-color var(--motion-fast) ease}
+button:active:not(:disabled){opacity:.82}button:disabled{cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
+.panel,.overview-card,.upcoming,.transactions,.list-card,.scheduled-card,.recent-pay-list,.tx-details-card{min-width:0}
+.tx,.list-row,.recent-pay-item,.settings-row{min-width:0}
+.tx-title,.tx-date,.row-copy,.recent-pay-item strong,.recent-pay-item small{overflow-wrap:anywhere}
+.tx-amount{font-variant-numeric:tabular-nums}.balance,.accounts-total button,.tx-detail-amount{font-variant-numeric:tabular-nums;line-height:1.15}
+.form-actions{flex-wrap:wrap}.form-actions button{min-height:44px}
+.field input,.field select,.tx-editor input,.tx-editor select{max-width:100%;min-height:44px}
+.tx-editor-backdrop{padding:calc(12px + env(safe-area-inset-top,0px)) 12px calc(12px + env(safe-area-inset-bottom,0px))}
+.tx-editor{max-height:calc(100dvh - 30px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));overscroll-behavior:contain}
+.tx-editor .actions{bottom:-1px;padding-bottom:max(8px,env(safe-area-inset-bottom,0px))}
+.toast{max-width:calc(100vw - 32px);width:max-content;text-align:center;bottom:calc(96px + env(safe-area-inset-bottom,0px));line-height:1.35}
+.flow-primary,.continue-btn,.primary,.secondary,.pay-actions button{min-height:48px}
+@media(max-width:360px){main{padding-left:12px;padding-right:12px}nav{width:calc(100% - 16px)}nav button{font-size:10px}.tx-editor .two{grid-template-columns:1fr}.tx-detail-amount{font-size:38px}.flow-title{font-size:30px}.flow-amount{font-size:44px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.view.active{animation:none!important}.flow-screen{animation:none!important}button,nav button{transition:none!important}}
+
+
+/* Motion and icon finishing pass */
+:root{--motion-page:190ms;--motion-fast:150ms}
+.profile{width:44px;height:44px;border-radius:50%;background:linear-gradient(145deg,#303033,#1d1d20);border:1px solid #48484c;display:grid;place-items:center;padding:9px;box-shadow:inset 0 1px 1px #ffffff16,0 2px 7px #0006}
+.profile:after{content:none!important}
+.profile .ui-svg{display:block;width:100%;height:100%;stroke-width:1.85}
+nav{padding:6px;gap:0;border-radius:38px;background:linear-gradient(160deg,#353537,#29292b);border:1px solid #505054;box-shadow:inset 0 1px 1px #ffffff20,0 8px 22px #0008;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+nav button{border-radius:32px;min-height:59px;gap:3px;transform:translateZ(0);transition:background-color .17s ease,color .17s ease,opacity .14s ease}
+nav button.active{background:#121214;color:#399dff}
+nav button:not(.active){color:#f2f2f4}
+nav .navico{height:28px;min-height:28px;display:grid;place-items:center}
+nav .navico .ui-svg{width:27px;height:27px;stroke-width:1.8}
+nav button:active:not(:disabled){opacity:.8}
+.view.active{animation:premiumPageIn .19s cubic-bezier(.22,1,.36,1) both}
+@keyframes premiumPageIn{from{opacity:.55;transform:translate3d(0,5px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+@media(prefers-reduced-motion:reduce){.view.active{animation:none!important}nav button{transition:none!important}}
+
+/* iOS long-press: allow scrolling but never select transaction text. */
+.tx,.tx *,.recent-pay-item,.recent-pay-item *{
+  -webkit-user-select:none!important;user-select:none!important;
+  -webkit-touch-callout:none!important;
+}
+.tx{-webkit-tap-highlight-color:transparent;touch-action:pan-y;cursor:pointer}
+/* Native-feeling crossfade between views, with a small directional slide. */
+@keyframes walletOldPage{to{opacity:0;transform:translate3d(-9px,0,0)}}
+@keyframes walletNewPage{from{opacity:0;transform:translate3d(12px,0,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+::view-transition-old(root){animation:155ms cubic-bezier(.4,0,1,1) both walletOldPage}
+::view-transition-new(root){animation:245ms cubic-bezier(.2,.8,.2,1) both walletNewPage}
+html.wallet-transitioning .view.active{animation:none!important}
+@media(prefers-reduced-motion:reduce){::view-transition-old(root),::view-transition-new(root){animation-duration:.01ms!important}}
+/* Stable iOS transitions: animate only the new content, never the entire viewport. */
+::view-transition-old(root),::view-transition-new(root){animation:none!important}
+.view.active{animation:stablePageFade 160ms ease-out both!important;transform:none!important}
+@keyframes stablePageFade{from{opacity:.82}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){.view.active{animation:none!important}}
+
+/* Soft spring transitions: animate page content, not the entire viewport. */
+@keyframes walletSoftSpring {
+  0% {opacity:.72;transform:translate3d(0,7px,0) scale(.992)}
+  58% {opacity:1;transform:translate3d(0,-2px,0) scale(1.002)}
+  82% {opacity:1;transform:translate3d(0,1px,0) scale(1)}
+  100% {opacity:1;transform:translate3d(0,0,0) scale(1)}
+}
+.view.active{animation:walletSoftSpring 340ms cubic-bezier(.22,.75,.25,1) both!important;transform-origin:50% 12%}
+@keyframes walletNavPop{0%{transform:scale(.91)}62%{transform:scale(1.09)}100%{transform:scale(1)}}
+nav button.active .navico{animation:walletNavPop 310ms cubic-bezier(.22,.75,.25,1) both}
+nav button{transition:background-color 230ms ease,color 230ms ease!important}
+button:active:not(:disabled){opacity:.92}
+@media(prefers-reduced-motion:reduce){.view.active,nav button.active .navico{animation:none!important}}
+
+/* Direction-aware transitions: sheet rises; forward steps enter from right. */
+.view.active { animation: none !important; }
+.view.active.wallet-enter-up { animation: walletEnterUp 340ms cubic-bezier(.2,.8,.2,1) both !important; }
+.view.active.wallet-enter-left { animation: walletEnterLeft 300ms cubic-bezier(.2,.8,.2,1) both !important; }
+.view.active.wallet-enter-right { animation: walletEnterRight 290ms cubic-bezier(.2,.8,.2,1) both !important; }
+@keyframes walletEnterUp {
+  0% { opacity:.55; transform:translate3d(0,36px,0); }
+  72% { opacity:1; transform:translate3d(0,-3px,0); }
+  100% { opacity:1; transform:translate3d(0,0,0); }
+}
+@keyframes walletEnterLeft {
+  0% { opacity:.55; transform:translate3d(44px,0,0); }
+  76% { opacity:1; transform:translate3d(-3px,0,0); }
+  100% { opacity:1; transform:translate3d(0,0,0); }
+}
+@keyframes walletEnterRight {
+  0% { opacity:.55; transform:translate3d(-36px,0,0); }
+  76% { opacity:1; transform:translate3d(2px,0,0); }
+  100% { opacity:1; transform:translate3d(0,0,0); }
+}
+@media(prefers-reduced-motion:reduce) {
+ .view.active.wallet-enter-up,.view.active.wallet-enter-left,.view.active.wallet-enter-right { animation:none !important; }
+}
+
+
+/* Two overview cards restored. */
+.overview-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+
+html, body { touch-action: pan-x pan-y; }
+</style>
+<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand"><button class="profile" aria-label="Open settings" onclick="showView('settings')"><svg class="ui-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="9" r="3.2"/><path d="M5.7 19c.8-3.3 3.1-5 6.3-5s5.5 1.7 6.3 5"/></svg></button><div class="logo" id="headerLogo" title="Custom wallet logo">L</div><div class="brand-name" id="headerName" hidden>LARP Wallet</div></div>
+    <div class="header-tools"><button class="header-tool header-card-button" aria-label="Open accounts" title="Accounts" onclick="showView('accounts')"><svg class="mini-debit-card" viewBox="0 0 42 30" role="img" aria-label="Blue debit card"><defs><linearGradient id="walletCardPaint" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#61bdff"/><stop offset="0.55" stop-color="#1675d4"/><stop offset="1" stop-color="#0d4593"/></linearGradient></defs><rect x="1" y="1" width="40" height="28" rx="4" fill="url(#walletCardPaint)" stroke="#82c8ff" stroke-width="0.8"/><rect x="7" y="9" width="7" height="5.5" rx="1.2" fill="#edcf83"/><path d="M7 11h7M10.5 9v5.5" stroke="#8d7640" stroke-width="0.55"/><circle cx="30.5" cy="21" r="2.4" fill="#eaf7ff" fill-opacity=".85"/><circle cx="33" cy="21" r="2.4" fill="#a7d9ff" fill-opacity=".65"/></svg></button><button class="header-tool" aria-label="Search transactions" onclick="showView('transactions')">⌕</button></div>
+  </header>
+  <nav aria-label="Main navigation">
+    <button class="active" data-view="home" onclick="showView('home')"><span class="navico"><svg class="ui-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M14.5 8.5h-4a2 2 0 0 0 0 4h3a2 2 0 0 1 0 4h-4M12 6.5v11"/></svg></span>Money</button>
+    <button data-view="accounts" onclick="showView('accounts')"><span class="navico"><svg class="ui-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="5.5" width="19" height="14.5" rx="2"/><path d="M2.5 9h19M15 12.5h6.5v5H15z"/><circle cx="18" cy="15" r=".6" fill="currentColor" stroke="none"/></svg></span>Accounts</button>
+    <button data-view="payments" onclick="showView('payments')"><span class="navico"><svg class="ui-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.5 5.5A8.5 8.5 0 1 0 19 17"/><path d="M16 9h-5a2 2 0 0 0 0 4h2a2 2 0 0 1 0 4H9M12 7v12M17 12h6m-3-3 3 3-3 3"/></svg></span>Payments</button>
+    <button data-view="products" onclick="showView('products')"><span class="navico"><svg class="ui-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 8h15l1 13h-17zM9 9V6a3 3 0 0 1 6 0v3"/></svg></span>Products</button>
+    <button data-view="support" onclick="showView('support')"><span class="navico"><svg class="ui-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="13" rx="2"/><circle cx="12" cy="9" r="2.5"/><path d="M7 15c.8-2.2 2.5-3 5-3s4.2.8 5 3M8 21h8M12 17v4"/></svg></span>Support</button>
+  </nav>
+  <main>
+    <section class="view active" id="home">
+      <div class="home-top"><button class="active" onclick="setAccountTab(this,'everyday')">Everyday</button><button onclick="setAccountTab(this,'savings')">Savings</button></div>
+      <div class="balance-wrap"><div class="balance-label" id="balanceLabel">Everyday balance ⓘ</div><div class="balance" id="homeBalance">$12,450.00</div></div>
+      <div class="overview-grid">
+        <div class="overview-card"><div class="eyebrow">Spending (30 days)</div><strong id="spendingTotal">$0.00</strong><div class="bubble-chart"><i class="bubble"></i><i class="bubble b2"></i><i class="bubble b3"></i></div></div>
+        <div class="overview-card"><div class="eyebrow">Last 30 days</div><strong>Money In &amp; Out</strong><div class="bar-chart"><i></i><i></i></div></div>
+      </div>
+      <div class="upcoming"><div><div class="label"><svg class="ui-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 8.5c-1-1-5-1-6 .5-2 3 6 2 6 5 0 2-5 3-7 1M12 5v14"/></svg> &nbsp;Upcoming</div><div class="sub">Predicted expenses · 30 days</div></div><strong id="upcomingTotal">$0.00</strong></div>
+      <div class="section-head"><h2>Today</h2><button class="text-btn" onclick="showView('transactions')">See all</button></div>
+      <div class="transactions" id="homeTransactions"></div>
+    </section>
+
+    <section class="view" id="payments">
+      <div class="payments-top"><h1>Payments</h1></div>
+      <div class="pay-actions"><button onclick="openNewPayment()"><span><svg class="ui-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="12" r="8"/><path d="M13 8H8v4h4v4H7M10 5v14M17 12h6m-3-3 3 3-3 3"/></svg></span> Pay</button><button onclick="openNewPayment()"><span><svg class="ui-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h18m-5-4 5 4-5 4M21 17H3m5-4-5 4 5 4"/></svg></span> Transfer</button></div>
+      <div class="section-head pay-section-head"><h2>Quick Pay</h2><button class="text-btn" onclick="editQuickPay()">Edit</button></div>
+      <div class="quick-pay" id="quickPayContacts"></div>
+      <button class="scheduled-card" onclick="showToast('No scheduled payments yet. Use Pay or Transfer to make a payment.')"><span class="scheduled-icon"><svg class="ui-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18M7 14h2m3 0h2m3 0h1"/></svg></span><span><strong>Scheduled</strong><small>No scheduled payments</small></span><span class="scheduled-arrow">›</span></button>
+      <div class="section-head recent-pay-head"><h2>This Month</h2></div>
+      <div class="recent-pay-list" id="recentlyPaid"></div>
+      <div class="payment-form-container" id="paymentFormContainer" hidden>
+      <div class="section-head"><h2>New payment</h2><button class="text-btn" onclick="closePaymentForm()">Close</button></div>
+      <div class="panel">
+        <h2 id="paymentHeading">PayID</h2><p id="paymentDescription">Send a payment using a PayID.</p>
+        <div class="form-grid">
+          <div class="field full"><label for="paymentType">Payment type</label><select id="paymentType" onchange="changePaymentType()"><option value="payid">PayID</option><option value="bank">Bank transfer</option><option value="deposit">Add funds</option></select></div>
+          <div class="field full" id="recipientField"><label id="recipientLabel" for="recipient">PayID (email or mobile)</label><input id="recipient" placeholder="e.g. alex@example.com" autocomplete="off"></div>
+          <div class="field" id="bsbField" style="display:none"><label for="bsb">BSB</label><input id="bsb" inputmode="numeric" maxlength="6" placeholder="000000"></div>
+          <div class="field" id="accountField" style="display:none"><label for="account">Account number</label><input id="account" inputmode="numeric" maxlength="10" placeholder="123456789"></div>
+          <div class="field full"><label for="amount">Amount (AUD)</label><input id="amount" type="number" min="0.01" step="0.01" placeholder="0.00"></div>
+          <div class="field full"><label for="description">Description</label><input id="description" maxlength="60" placeholder="What's this payment for?"></div>
+        </div>
+        <div class="form-actions"><button class="primary" onclick="submitPayment()">Continue</button><button class="secondary" onclick="clearPayment()">Clear</button></div>
+      </div></div>
+    </section>
+
+    <section class="view" id="accounts">
+      <h1 class="page-title">My Accounts</h1>
+      <div class="accounts-total"><div>Amounts Displayed ⓘ</div><button onclick="editBalancePrompt()" id="accountsBalance">$12,450.00</button></div>
+      <h2 class="group-label" id="accountGroupTitle">Your Wallet</h2>
+      <div class="list-card">
+        <button class="list-row" onclick="showView('home')"><span class="row-symbol">▣</span><span class="row-copy">Everyday</span><strong id="everydayBalance">$12,450.00</strong></button>
+        <button class="list-row" onclick="showToast('Savings account can be added in a future update.')"><span class="row-symbol">✿</span><span class="row-copy">Growth Saver</span><strong>$0.00</strong></button>
+        <button class="list-row" onclick="showToast('Flex Saver can be added in a future update.')"><span class="row-symbol">▤</span><span class="row-copy">Flex Saver</span><strong>$0.00</strong></button>
+        <button class="list-row" onclick="showToast('Additional accounts are coming soon.')"><span class="row-symbol">⊕</span><span class="row-copy">Open a new account</span><span class="blue-plus">＋</span></button>
+      </div>
+      <h2 class="group-label">Other accounts</h2><button class="wide-row" onclick="showToast('External account linking is unavailable in this fictional wallet.')"><span>🔗</span> Link other accounts <span class="chevron">›</span></button>
+    </section>
+    <section class="view" id="products">
+      <h1 class="page-title">Products</h1><h2 class="hero-title">Explore Products</h2>
+      <h2 class="group-label">Select a category</h2>
+      <div class="list-card"><button class="list-row" onclick="showToast('This is a fictional product catalogue.')"><span class="row-symbol">▣</span><span class="row-copy">Everyday Accounts<small>Transaction accounts and debit cards.</small></span><span class="chevron">›</span></button><button class="list-row" onclick="showToast('This is a fictional product catalogue.')"><span class="row-symbol">♧</span><span class="row-copy">Savings Accounts<small>Explore ways to organise savings.</small></span><span class="chevron">›</span></button></div>
+    </section>
+    <section class="view" id="support">
+      <h1 class="page-title">Support</h1><div class="segmented"><button class="selected" onclick="switchSupport(this,'help')">Help</button><button onclick="switchSupport(this,'learn')">Learn</button></div>
+      <h2 class="hero-title" id="supportHero">How can we help?</h2><h2 class="group-label">Get in touch</h2>
+      <button class="wide-row" onclick="showToast('Messaging is not connected to a real support service.')"><span>▤</span> Message Us <span class="chevron">›</span></button>
+      <button class="wide-row" onclick="showToast('No real phone support is available.')"><span>♧</span> Call Us <span class="chevron">›</span></button>
+      <h2 class="group-label">Pick a Topic</h2><div class="list-card">
+      <button class="list-row" onclick="showView('accounts')"><span class="row-symbol">▣</span><span class="row-copy">Accounts<small>Balances, details and account options.</small></span><span class="chevron">›</span></button>
+      <button class="list-row" onclick="showView('transactions')"><span class="row-symbol">◉</span><span class="row-copy">Money &amp; Transactions<small>Activity, spending and history.</small></span><span class="chevron">›</span></button>
+      <button class="list-row" onclick="showView('payments')"><span class="row-symbol">⇄</span><span class="row-copy">Payments<small>Transfers, payments and schedules.</small></span><span class="chevron">›</span></button>
+      <button class="list-row" onclick="showToast('Virtual cards are not yet available.')"><span class="row-symbol">▭</span><span class="row-copy">Cards<small>Controls and card preferences.</small></span><span class="chevron">›</span></button></div>
+    </section>
+    <section class="view" id="newpayment"><div class="sheet-head"><h1>New Payment</h1><button class="round-close" onclick="showView('payments')"><svg class="ui-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 19 19M19 5 5 19"/></svg></button></div>
+      <div class="payment-choices">
+        <button class="choice" onclick="startPayment('bank')"><span class="choice-icon"><svg class="ui-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="15" rx="2"/><path d="M3 9h18M16 14h5"/></svg></span><span>Account<small>BSB &amp; account number</small></span><span class="chevron">›</span></button>
+        <button class="choice" onclick="openPayIDEntry()"><span class="choice-icon"><svg class="ui-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M10 18h4M9 6h2m2 0h2m-6 4h2m2 0h2"/></svg></span><span>PayID<small>Mobile number, email &amp; more</small></span><span class="chevron">›</span></button>
+        <button class="choice" onclick="showToast('BPAY is not connected in this fictional wallet.')"><span class="choice-icon"><svg class="ui-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M8 6h8M8 11h2m4 0h2m-8 4h2m4 0h2m-8 4h2m4 0h2"/></svg></span><span>BPAY<small>Biller code &amp; reference number</small></span><span class="chevron">›</span></button>
+        <button class="choice" onclick="showToast('International transfers are not connected.')"><span class="choice-icon"><svg class="ui-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c-5 5-5 13 0 18M12 3c5 5 5 13 0 18"/></svg></span><span>International Money Transfer<small>Recipient’s bank &amp; account details</small></span><span class="chevron">›</span></button>
+      </div><div class="section-head"><h2>Contacts</h2><button class="text-btn" onclick="editQuickPay()">＋ Edit</button></div><div id="paymentContactList" class="list-card"></div>
+    </section>
+    <section class="view" id="payidentry"><div class="entry-back"><button class="round-close" onclick="showView('newpayment')"><svg class="ui-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></button></div><h1 class="entry-title">Enter PayID</h1>
+      <div class="segmented payid-tabs"><button class="selected" onclick="setPayIDTab(this,'mobile')">Mobile</button><button onclick="setPayIDTab(this,'email')">Email</button><button onclick="setPayIDTab(this,'other')">Other</button></div>
+      <div class="entry-field entry-field-plain"><label class="visually-hidden" id="payidEntryLabel" for="payidEntryInput">Mobile number</label><input id="payidEntryInput" type="tel" inputmode="tel" placeholder="" aria-label="Mobile number" autocomplete="off" spellcheck="false" oninput="validatePayIDEntry()"></div>
+      <button class="contact-find" onclick="showToast('Enter a saved contact manually to continue.')">⊙ &nbsp; Find in Contacts</button>
+      <button class="continue-btn" id="payidContinue" onclick="continuePayID()" disabled>Continue</button>
+    </section>
+
+    <section class="view" id="payidverify"><div class="flow-screen"><div class="flow-top"><button class="flow-icon" onclick="showView('payidentry')"><svg class="ui-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></button><button class="flow-icon" onclick="showView('payments')"><svg class="ui-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 19 19M19 5 5 19"/></svg></button></div><h1 class="flow-title">Is this right?</h1><div class="flow-card"><div class="caption">To</div><input class="flow-input flow-name-input" id="flowRecipientName" maxlength="65" placeholder="" aria-label="Recipient name" autocomplete="off" oninput="validateFlowName()"><div class="caption">PayID</div><div class="value" id="flowPayID"></div></div><div class="flow-small flow-verify-note" style="color:var(--simulation-text-color,#aeb7c4)">Recipient name entered manually · not bank-verified</div><div class="flow-spacer"></div><button class="flow-primary" id="flowNameContinue" onclick="goFlowAmount()" disabled>Continue</button></div></section>
+    <section class="view" id="payidamount"><div class="flow-screen"><div class="flow-top"><button class="flow-icon" onclick="showView('payidverify')"><svg class="ui-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></button><button class="flow-icon" onclick="showView('payments')"><svg class="ui-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 19 19M19 5 5 19"/></svg></button></div><div class="flow-avatar" id="flowAvatar">?</div><div class="value" id="flowAmountName" style="text-align:center;font-size:20px"></div><div class="flow-spacer"></div><div class="flow-small" style="color:#fff">Amount</div><input id="flowAmount" class="flow-amount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="$0.00" oninput="validateFlowAmount()"><div style="text-align:center"><button class="flow-link" onclick="showToast('Selected account: Everyday.')" id="flowAccountLabel">Everyday</button></div><input id="flowMessage" class="flow-input" maxlength="100" placeholder="Add message (optional)" style="font-size:16px"><div class="flow-spacer"></div><button class="flow-primary" id="flowAmountContinue" onclick="goFlowReview()" disabled>Continue</button></div></section>
+    <section class="view" id="payidreview"><div class="flow-screen"><div class="flow-top"><button class="flow-icon" onclick="showView('payidamount')"><svg class="ui-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></button><button class="flow-icon" onclick="showView('payments')"><svg class="ui-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 19 19M19 5 5 19"/></svg></button></div><h1 class="flow-title">Ready to pay?</h1><div class="flow-card"><div class="caption">To</div><div class="value" id="flowReviewName"></div><div class="caption">PayID</div><div class="value" id="flowReviewID"></div></div><div class="flow-card"><div class="caption">Amount</div><div class="value" id="flowReviewAmount"></div><div class="caption">From</div><div class="value">Everyday</div></div><input id="flowReference" class="flow-input" maxlength="80" placeholder="Add reference (optional)" style="font-size:16px"><div class="flow-sim-text" id="customSimulationReview" role="note"></div><div class="flow-logo" id="flowBrandReview"></div><div class="flow-spacer"></div><button class="flow-link" onclick="showToast('Scheduled payments are not yet available.')">▦ &nbsp; Schedule Payment</button><button class="flow-primary" onclick="finishFlowPayment()">Pay Now</button></div></section>
+    <section class="view" id="payidreceipt"><div class="flow-screen"><div class="flow-top"><button class="flow-icon" onclick="shareFlowReceipt()"><svg class="ui-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V3m-5 5 5-5 5 5M5 12H3v9h18v-9h-2"/></svg></button><button class="flow-icon" onclick="showView('payments')"><svg class="ui-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 19 19M19 5 5 19"/></svg></button></div><div class="flow-sim-pill flow-receipt-pill" role="note">SIMULATED PAYMENT · NO FUNDS SENT</div><div class="flow-success"><svg class="ui-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 12 5 5L20 6"/></svg></div><div class="flow-title" style="font-size:20px" id="flowReceiptTitle"></div><div class="flow-sub" id="flowReceiptDate"></div><div class="flow-title" style="font-size:40px" id="flowReceiptAmount"></div><div class="flow-receipt" id="flowReceiptDetails"></div><div class="flow-logo" id="flowBrandReceipt"></div><div class="flow-notice">Demo receipt only · Not valid proof of payment</div><div class="flow-spacer"></div><label class="flow-switch">Save contact <input id="flowSaveContact" type="checkbox" checked></label><button class="flow-primary" onclick="doneFlowPayment()">Done</button></div></section>
+    <section class="view" id="transactions">
+      <div class="welcome"><div><h1>Transactions</h1><div class="muted small">Your wallet activity.</div></div></div>
+      <div class="transactions" id="allTransactions"></div>
+    </section>
+
+    <section class="view" id="settings">
+      <div class="sheet-head"><h1>Settings</h1><button class="round-close" onclick="showView('home')"><svg class="ui-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 19 19M19 5 5 19"/></svg></button></div><div class="settings-links"><button onclick="showView('accounts')"><svg class="ui-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="15" rx="2"/><path d="M3 9h18M16 14h5"/></svg> &nbsp; Account Details <span>›</span></button><button onclick="document.getElementById('customName').focus()"><svg class="ui-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg> &nbsp; Profile <span>›</span></button><button onclick="showView('payments')"><svg class="ui-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 8.5c-1-1-5-1-6 .5-2 3 6 2 6 5 0 2-5 3-7 1M12 5v14"/></svg> &nbsp; Payment Settings <span>›</span></button><button onclick="showToast('Notifications are not enabled.')"><svg class="ui-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg> &nbsp; Notifications <span>›</span></button><button onclick="showToast('This wallet stores data only in your browser.')"><svg class="ui-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg> &nbsp; Security <span>›</span></button><button onclick="showView('transactions')"><svg class="ui-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2h9l5 5v15H6zM15 2v6h5M9 12h8m-8 4h8"/></svg> &nbsp; Statements &amp; Notices <span>›</span></button></div>
+      <div class="panel">
+        <h2>Appearance</h2><p>Change the name and logo shown in your wallet.</p>
+        <div class="settings-row"><div style="display:flex;align-items:center;gap:13px"><div class="logo-preview" id="logoPreview">L</div><div><strong>Wallet logo</strong><small>Choose an image from your device</small></div></div><button class="secondary" onclick="document.getElementById('logoFile').click()">Choose photo</button><input id="logoFile" type="file" accept="image/*" hidden onchange="uploadLogo(event)"></div>
+
+        <div class="settings-row"><div style="display:flex;align-items:center;gap:13px"><div class="logo-preview" id="paymentBrandPreview">✦</div><div><strong>Payment symbol</strong><small>Custom image on payment review and receipt</small></div></div><button class="secondary" onclick="document.getElementById('paymentBrandFile').click()">Choose photo</button><input id="paymentBrandFile" type="file" accept="image/*" hidden onchange="uploadPaymentBrand(event)"></div><div class="form-actions"><button class="secondary" onclick="resetPaymentBrand()">Reset payment symbol</button></div>
+        <div class="field" style="margin-top:17px"><label for="customName">Wallet name</label><input id="customName" maxlength="28" placeholder="Enter a wallet name"></div>
+        <div class="field" style="margin-top:17px"><label for="logoSize">Logo size</label><input id="logoSize" type="range" min="30" max="76" value="42" oninput="previewLogoSize(this.value)"><small id="logoSizeLabel" class="muted">42 px</small></div>
+        <div class="form-actions"><button class="primary" onclick="saveBranding()">Save changes</button><button class="secondary" onclick="resetLogo()">Reset logo</button></div>
+      </div>
+      <div class="panel">
+        <h2>Payment disclaimer</h2><p>Customize the wording on Ready to pay and the colour of simulation notices throughout the wallet.</p>
+        <div class="field"><label for="customSimulationText">Custom simulation message</label><textarea id="customSimulationText" maxlength="280" rows="3" style="width:100%;box-sizing:border-box;border-radius:14px;padding:12px;background:#303034;color:white;border:1px solid #555;resize:vertical" placeholder="This is a simulation. No actual money is transferred."></textarea></div>
+        <div class="field"><label for="customSimulationColor">Message text colour</label><input id="customSimulationColor" type="color" value="#aeb7c4" style="width:76px;height:48px;padding:4px;border-radius:12px;cursor:pointer" oninput="previewSimulationColor(this.value)"></div><div class="form-actions"><button class="primary" onclick="saveSimulationMessage()">Save message</button><button class="secondary" onclick="resetSimulationMessage()">Use default</button></div>
+      </div>
+      <div class="panel">
+        <h2>Account settings</h2><p>Manage the fictional account shown in this wallet.</p>
+        <div class="field"><label for="balanceEdit">Available balance (AUD)</label><input id="balanceEdit" type="number" min="0" step="0.01"></div>
+        <div class="form-actions"><button class="primary" onclick="saveBalance()">Update balance</button></div>
+      </div>
+      <div class="panel">
+        <h2>About this wallet</h2>
+        <div class="notice" style="margin-top:10px"><strong>Fictional wallet simulation.</strong> This app is not affiliated with or endorsed by any bank. Balances, account details, contact names, PayID references, transfers and receipts are fictional. Recipient names are entered manually and are not verified with a bank. The “Pay Now” button only updates this browser’s local demo balance; it cannot send money. Payment confirmations, screenshots, and shared receipts are not proof of any actual transfer. No bank or PayID network is connected.</div>
+        <div class="form-actions"><button class="secondary" onclick="resetApp()">Reset all local data</button></div>
+      </div>
+    </section>
+<section class="view" id="transactiondetail"><div class="tx-detail-page"><div class="tx-detail-head"><button class="tx-detail-icon" onclick="showView(lastTxView)">‹</button></div><div class="tx-detail-amount" id="detailAmount"></div><div class="tx-detail-name" id="detailName"></div><div class="tx-detail-date" id="detailDate"></div><div class="tx-category" id="detailCategory"></div><button class="tx-tags" onclick="editTransaction(activeTxId)">＋ Add Tag</button><div class="tx-detail-location" id="detailLocation"></div><div class="tx-details-card"><div class="tx-muted">From</div><div class="tx-value" id="detailCard"></div><br><div class="tx-muted">Acc:</div><div class="tx-value" id="detailFrom">830 487 374</div><br><div class="tx-muted">Card used</div><div class="tx-value" id="detailCardUsed">**** 0031</div><br><div class="tx-muted">Transaction details</div><div class="tx-value" id="detailMemo"></div></div><div class="tx-detail-demo">Simulated transaction · No real payment</div></div></section>
+  </main>
+</div>
+<div id="txEditorRoot"></div><div class="toast" id="toast" role="status"></div><div id="txMenuRoot"></div>
+
+<script>
+const STORE='larp-wallet-v2';
+const initial={name:'LARP Wallet',logo:'',logoSize:42,balance:12450,transactions:[
+  {id:1,title:'Coffee Shop',detail:'Card purchase',date:new Date(Date.now()-3600000).toISOString(),amount:-5.50},
+  {id:2,title:'Pay received',detail:'Simulated deposit',date:new Date(Date.now()-86400000).toISOString(),amount:850},
+  {id:3,title:'Online Shopping',detail:'Card purchase',date:new Date(Date.now()-172800000).toISOString(),amount:-129.99}
+]};
+let data=loadData(), pendingLogo=data.logo;
+function loadData(){try{return {...initial,...JSON.parse(localStorage.getItem(STORE)||'{}')}}catch{return structuredClone(initial)}}
+function persist(){localStorage.setItem(STORE,JSON.stringify(data))}
+function renderSimulationMessage(){document.documentElement.style.setProperty('--simulation-text-color',/^#[0-9a-fA-F]{6}$/.test(data.simulationColor||'')?data.simulationColor:'#aeb7c4');const el=document.getElementById('customSimulationReview');if(el){el.textContent=data.simulationMessage??'This is a simulation. No actual money is transferred.';el.style.color=/^#[0-9a-fA-F]{6}$/.test(data.simulationColor||'')?data.simulationColor:'#aeb7c4';}}
+function previewSimulationColor(value){document.documentElement.style.setProperty('--simulation-text-color',value);const el=document.getElementById('customSimulationReview');if(el)el.style.color=value;}
+function saveSimulationMessage(){const value=document.getElementById('customSimulationText').value.trim();if(!value){showToast('Enter a message first.');return}if(!/simulat|fictional|not real|no (actual|real) (money|funds)|no funds (are )?sent/i.test(value)){showToast('Please make clear this is a simulation.');return}data.simulationMessage=value;data.simulationColor=document.getElementById('customSimulationColor').value;persist();renderSimulationMessage();showToast('Message saved.')}
+function resetSimulationMessage(){data.simulationMessage='This is a simulation. No actual money is transferred.';document.getElementById('customSimulationText').value=data.simulationMessage;persist();renderSimulationMessage();showToast('Default message restored.')}
+function money(n){return new Intl.NumberFormat('en-AU',{style:'currency',currency:'AUD'}).format(n)}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>t.style.display='none',2600)}
+let walletViewTransition=null;
+function showView(id){
+ const target=document.getElementById(id);
+ if(!target)return;
+ const current=document.querySelector('.view.active');
+ const previousId=current?.id;
+ const payFlow=['newpayment','payidentry','payidverify','payidamount','payidreview','payidreceipt'];
+ let direction='wallet-enter-up';
+ const fromIndex=payFlow.indexOf(previousId);
+ const toIndex=payFlow.indexOf(id);
+ if(fromIndex!==-1 && toIndex!==-1) direction=toIndex>fromIndex?'wallet-enter-left':'wallet-enter-right';
+ else if(id==='payidentry' && previousId==='newpayment') direction='wallet-enter-left';
+ else if(previousId==='payidentry' && id==='newpayment') direction='wallet-enter-right';
+ else if(previousId==='transactiondetail' && id!=='transactiondetail') direction='wallet-enter-right';
+ else if(id==='transactiondetail') direction='wallet-enter-left';
+ const changed=previousId!==id;
+ document.querySelectorAll('.view').forEach(v=>{
+  v.classList.remove('wallet-enter-up','wallet-enter-left','wallet-enter-right');
+  v.classList.toggle('active',v.id===id);
+ });
+ document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===id));
+ if(id==='settings'){
+  document.getElementById('balanceEdit').value=Number(data.balance).toFixed(2);
+  document.getElementById('customSimulationText').value=data.simulationMessage??'This is a simulation. No actual money is transferred.';
+  document.getElementById('customSimulationColor').value=/^#[0-9a-fA-F]{6}$/.test(data.simulationColor||'')?data.simulationColor:'#aeb7c4';
+ }
+ window.scrollTo(0,0);
+ render();
+ if(changed){
+  // Restart animation only on the newly opened content; never animate header or nav.
+  void target.offsetWidth;
+  target.classList.add(direction);
+ }
+}
+function showPayment(type){showView('payments');openPaymentForm(type)}
+function openPaymentForm(type){document.getElementById('paymentFormContainer').hidden=false;document.getElementById('paymentType').value=type;changePaymentType();document.getElementById('paymentFormContainer').scrollIntoView({behavior:'smooth',block:'nearest'})}
+function closePaymentForm(){document.getElementById('paymentFormContainer').hidden=true}
+function editBalancePrompt(){const raw=prompt('Set your wallet balance (AUD):',Number(data.balance).toFixed(2));if(raw===null)return;const val=Number(raw.replace(/[$, ]/g,''));if(!raw.trim()||!Number.isFinite(val)||val<0){showToast('Enter a valid balance.');return}data.balance=Math.round(val*100)/100;persist();render();showToast('Balance updated.')}
+function editQuickPay(){const names=prompt('Quick Pay contacts (separate names with commas):',(data.quickPay||['Mum','Dad','Alex']).join(', '));if(names===null)return;data.quickPay=names.split(',').map(x=>x.trim()).filter(Boolean).slice(0,8);persist();render()}
+function quickPayTo(name){openPaymentForm('payid');document.getElementById('recipient').value=name;document.getElementById('recipient').focus()}
+function recentPayTo(id){const tx=data.transactions.find(t=>String(t.id)===String(id));if(!tx)return;openPaymentForm(tx.title==='Bank transfer'?'bank':'payid');document.getElementById('recipient').value=(tx.detail||tx.title).split(' · ')[0]}
+function renderPayments(){const contacts=data.quickPay||['Mum','Dad','Alex'];document.getElementById('quickPayContacts').innerHTML=contacts.map(n=>`<button class="quick-contact" data-contact="${escapeHTML(n)}"><span class="contact-avatar">${escapeHTML(n.slice(0,2).toUpperCase())}</span><span>${escapeHTML(n)}</span></button>`).join('')+'<button class="quick-contact add-contact" onclick="editQuickPay()"><span class="contact-avatar">+</span><span>Add</span></button>';document.querySelectorAll('[data-contact]').forEach(el=>el.addEventListener('click',()=>quickPayTo(el.dataset.contact)));const recent=data.transactions.filter(t=>t.amount<0).slice(0,6);document.getElementById('recentlyPaid').innerHTML=recent.length?recent.map(tx=>`<button class="recent-pay-item" data-recent="${tx.id}"><span class="recent-pay-avatar">↗</span><span><strong>${escapeHTML(tx.title)}</strong><small>You paid ${money(Math.abs(tx.amount))} · ${new Date(tx.date).toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'})}</small></span></button>`).join(''):'<div class="recent-pay-empty">Your recent payments will appear here.</div>';document.querySelectorAll('[data-recent]').forEach(el=>el.addEventListener('click',()=>recentPayTo(el.dataset.recent)))}
+
+function changePaymentType(){const type=document.getElementById('paymentType').value;const deposit=type==='deposit',bank=type==='bank';document.getElementById('paymentHeading').textContent=deposit?'Add funds':bank?'Bank transfer':'PayID';document.getElementById('paymentDescription').textContent=deposit?'Add funds to your wallet balance.':bank?'Enter bank account details for a transfer.':'Send a payment using a PayID.';document.getElementById('recipientField').style.display=deposit?'none':'flex';document.getElementById('recipientLabel').textContent=bank?'Account name':'PayID (email or mobile)';document.getElementById('recipient').placeholder=bank?'e.g. Alex Taylor':'e.g. alex@example.com';document.getElementById('bsbField').style.display=bank?'flex':'none';document.getElementById('accountField').style.display=bank?'flex':'none'}
+function clearPayment(){['recipient','bsb','account','amount','description'].forEach(id=>document.getElementById(id).value='')}
+function submitPayment(){const type=document.getElementById('paymentType').value,amount=Number(document.getElementById('amount').value),recipient=document.getElementById('recipient').value.trim(),description=document.getElementById('description').value.trim();if(!Number.isFinite(amount)||amount<=0){showToast('Enter a valid amount.');return}if(type!=='deposit'&&!recipient){showToast('Enter the recipient details.');return}if(type==='bank'&&(!/^\d{6}$/.test(document.getElementById('bsb').value.replace('-',''))||!/^\d{6,10}$/.test(document.getElementById('account').value))){showToast('Enter a 6-digit BSB and valid account number.');return}if(type!=='deposit'&&amount>data.balance){showToast('Insufficient simulated funds.');return}
+ let title,detail,delta;if(type==='deposit'){title='Funds added';detail=description||'Wallet top-up';delta=amount}else{title=type==='bank'?'Bank transfer':'PayID payment';detail=(recipient+(description?' · '+description:''));delta=-amount}
+ data.balance=Math.round((Number(data.balance)+delta)*100)/100;data.transactions.unshift({id:Date.now(),title,detail,date:new Date().toISOString(),amount:delta});persist();clearPayment();closePaymentForm();render();showToast('Payment completed.')}
+function txMarkup(tx){const incoming=tx.amount>0;return `<div class="tx" data-tx-id="${tx.id}" onclick="transactionTap(event, '${tx.id}')"><div class="tx-icon">${incoming?'↙':'↗'}</div><div class="tx-info"><div class="tx-title">${escapeHTML(tx.title)}</div><div class="tx-date">${escapeHTML(tx.detail||'Wallet transaction')} · ${new Date(tx.date).toLocaleString('en-AU',{dateStyle:'medium',timeStyle:'short'})}</div></div><div class="tx-amount ${incoming?'positive':'negative'}">${incoming?'+':'−'}${money(Math.abs(tx.amount))}</div></div>`}
+function escapeHTML(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function render(){renderSimulationMessage();document.getElementById('homeBalance').textContent=money(data.balance);document.getElementById('accountsBalance').textContent=money(data.balance);document.getElementById('everydayBalance').textContent=money(data.balance);document.getElementById('accountGroupTitle').textContent=data.name;const outgoing=data.transactions.filter(t=>t.amount<0).reduce((a,t)=>a+Math.abs(t.amount),0);document.getElementById('spendingTotal').textContent=money(outgoing);document.getElementById('upcomingTotal').textContent=money(outgoing*.19);document.getElementById('homeTransactions').innerHTML=data.transactions.length?data.transactions.slice(0,5).map(txMarkup).join(''):'<div class="empty">No transactions yet.</div>';document.getElementById('allTransactions').innerHTML=data.transactions.length?data.transactions.map(txMarkup).join(''):'<div class="empty">No transactions yet.</div>';document.getElementById('headerName').textContent=data.name;document.title=data.name;const logoHTML=data.logo?`<img src="${data.logo}" alt="Custom wallet logo">`:escapeHTML((data.name||'L').charAt(0).toUpperCase());document.getElementById('headerLogo').innerHTML=logoHTML;document.getElementById('logoPreview').innerHTML=logoHTML;document.getElementById('customName').value=data.name;document.documentElement.style.setProperty('--logo-size',(data.logoSize||42)+'px');document.getElementById('logoSize').value=data.logoSize||42;document.getElementById('logoSizeLabel').textContent=(data.logoSize||42)+' px'}
+function uploadLogo(event){const file=event.target.files[0];if(!file)return;if(!file.type.startsWith('image/')){showToast('Choose an image file.');return}if(file.size>3*1024*1024){showToast('Please choose an image under 3 MB.');return}const reader=new FileReader();reader.onload=()=>{pendingLogo=reader.result;document.getElementById('logoPreview').innerHTML=`<img src="${pendingLogo}" alt="Logo preview">`;showToast('Photo selected. Save changes to apply.')};reader.readAsDataURL(file)}
+function saveBranding(){const name=document.getElementById('customName').value.trim();if(!name){showToast('Enter a wallet name.');return}data.name=name;data.logo=pendingLogo;persist();render();showToast('Appearance saved.')}
+function resetLogo(){pendingLogo='';data.logo='';persist();render();showToast('Logo reset.')}
+function saveBalance(){const val=Number(document.getElementById('balanceEdit').value);if(!Number.isFinite(val)||val<0){showToast('Enter a valid balance.');return}data.balance=Math.round(val*100)/100;persist();render();showToast('Balance updated.')}
+function resetApp(){if(!confirm('Reset the wallet name, logo, balance and transaction history on this device?'))return;localStorage.removeItem(STORE);data=structuredClone(initial);pendingLogo='';render();showToast('Wallet reset.')}
+
+function setAccountTab(button,tab){document.querySelectorAll('.home-top button').forEach(b=>b.classList.toggle('active',b===button));document.getElementById('balanceLabel').textContent=tab==='savings'?'Savings balance ⓘ':'Everyday balance ⓘ';document.getElementById('homeBalance').textContent=money(tab==='savings'?0:data.balance);}
+function previewLogoSize(value){document.documentElement.style.setProperty('--logo-size',value+'px');document.getElementById('logoSizeLabel').textContent=value+' px';data.logoSize=Number(value);persist()}
+let holdTimer=null,holdTriggered=false;
+function showTransactionMenu(id){const tx=data.transactions.find(t=>String(t.id)===String(id));if(!tx)return;const root=document.getElementById('txMenuRoot');root.innerHTML=`<div class="tx-menu-backdrop" onclick="closeTxMenu(event)"><div class="tx-menu" onclick="event.stopPropagation()"><h3>${escapeHTML(tx.title)}</h3><p>Transaction options</p><button onclick="editTransaction('${tx.id}')">Edit transaction</button><button onclick="duplicateTransaction('${tx.id}')">Duplicate transaction</button><button class="danger" onclick="deleteTransaction('${tx.id}')">Delete transaction</button><button onclick="closeTxMenu()">Cancel</button></div></div>`}
+function closeTxMenu(event){if(event&&event.target!==event.currentTarget)return;document.getElementById('txMenuRoot').innerHTML=''}
+let activeTxId=null,lastTxView='transactions';
+function transactionTap(event,id){if(holdTriggered){holdTriggered=false;return}if(event.target.closest('button'))return;openTransactionDetail(id)}
+function openTransactionDetail(id){const tx=data.transactions.find(t=>String(t.id)===String(id));if(!tx)return;activeTxId=id;const active=document.querySelector('.view.active');if(active&&active.id!=='transactiondetail')lastTxView=active.id;const set=(key,value)=>document.getElementById(key).textContent=value;set('detailAmount',money(Math.abs(tx.amount)));set('detailName',tx.title);set('detailDate',new Date(tx.date).toLocaleString('en-AU',{weekday:'long',day:'numeric',month:'long',year:'numeric',hour:'numeric',minute:'2-digit',timeZone:'Australia/Melbourne'})+' AEDT');set('detailCategory',tx.category||'Other');set('detailLocation',tx.location||'');set('detailCard',data.name||'Wallet');set('detailFrom','830 487 374');set('detailCardUsed','**** 0031');set('detailMemo',tx.detail||'Wallet transaction');const tagBtn=document.querySelector('#transactiondetail .tx-tags');tagBtn.textContent=tx.tag||'＋ Add Tag';showView('transactiondetail')}
+function localDateTime(date){const d=new Date(date);if(!Number.isFinite(d.getTime()))return '';const pad=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'T'+pad(d.getHours())+':'+pad(d.getMinutes())}
+function setTransactionNow(){const v=localDateTime(new Date());document.getElementById('txEditDay').value=v.slice(0,10);document.getElementById('txEditClock').value=v.slice(11,16)}
+function editTransaction(id){const tx=data.transactions.find(t=>String(t.id)===String(id));if(!tx)return;closeTxMenu();const v=localDateTime(tx.date)||localDateTime(new Date());const root=document.getElementById('txEditorRoot');root.innerHTML=`<div class="tx-editor-backdrop" onclick="if(event.target===this)closeTransactionEditor()"><form class="tx-editor" id="txEditForm"><h2>Edit transaction</h2><label for="txEditName">Transaction name</label><input id="txEditName" required maxlength="90" value="${escapeHTML(tx.title)}"><div class="two"><div><label for="txEditAmount">Amount (negative = outgoing)</label><input id="txEditAmount" type="number" step="0.01" required value="${tx.amount}"></div><div><label for="txEditCategory">Category</label><select id="txEditCategory">${['Groceries','Shopping','Food & Drink','Transport','Bills','Entertainment','Transfers','Income','Other'].map(c=>`<option ${c===(tx.category||'Other')?'selected':''}>${c}</option>`).join('')}</select></div></div><label>Date and time</label><div class="two"><div><input aria-label="Transaction date" id="txEditDay" type="date" required value="${v.slice(0,10)}"></div><div><input aria-label="Transaction time" id="txEditClock" type="time" required value="${v.slice(11,16)}"></div></div><button class="now" type="button" onclick="setTransactionNow()">↻ Set to now</button><label for="txEditLocation">Purchase location</label><input id="txEditLocation" maxlength="120" placeholder="e.g. Highton, VIC" value="${escapeHTML(tx.location||'')}"><label for="txEditTag">Tag</label><input id="txEditTag" maxlength="45" placeholder="e.g. Weekly shop" value="${escapeHTML(tx.tag||'')}"><label for="txEditCard">Card used</label><input id="txEditCard" maxlength="65" value="${escapeHTML(tx.card||'Card')}"><label for="txEditDetail">Details</label><input id="txEditDetail" maxlength="160" value="${escapeHTML(tx.detail||'')}"><p class="tx-edit-error" id="txEditError" role="alert"></p><div class="actions"><button type="button" onclick="closeTransactionEditor()">Cancel</button><button type="button" id="txSaveButton">Save changes</button></div></form></div>`;document.getElementById('txSaveButton').addEventListener('click',()=>saveTransactionEdit(null,id));document.getElementById('txEditForm').addEventListener('submit',e=>saveTransactionEdit(e,id));}
+function closeTransactionEditor(){document.getElementById('txEditorRoot').innerHTML=''}
+function saveTransactionEdit(e,id){
+ if(e)e.preventDefault();
+ const error=document.getElementById('txEditError');
+ const tx=data.transactions.find(t=>String(t.id)===String(id));
+ if(!tx){if(error)error.textContent='Transaction not found. Reopen the editor.';return}
+ const get=k=>document.getElementById(k)?.value??'';
+ const title=get('txEditName').trim();
+ const n=Number(get('txEditAmount'));
+ const day=get('txEditDay'),clock=get('txEditClock');
+ const dt=new Date(day+'T'+clock);
+ if(!title||!day||!clock||!get('txEditAmount').trim()||!Number.isFinite(n)||!Number.isFinite(dt.getTime())){
+  if(error)error.textContent='Please enter a name, amount, date and time.';
+  return;
+ }
+ const before=structuredClone(data);
+ try{
+  const previous=Number(tx.amount)||0;
+  Object.assign(tx,{title,amount:Math.round(n*100)/100,date:dt.toISOString(),location:get('txEditLocation').trim(),category:get('txEditCategory'),tag:get('txEditTag').trim(),card:get('txEditCard').trim(),detail:get('txEditDetail').trim()});
+  data.balance=Math.round((Number(data.balance)+tx.amount-previous)*100)/100;
+  persist();
+  render();
+  closeTransactionEditor();
+  if(document.getElementById('transactiondetail').classList.contains('active')){
+    openTransactionDetail(id);
+  }
+  showToast('Transaction saved.');
+ }catch(err){
+  data=before;
+  if(error)error.textContent='Unable to save: '+(err?.message||'Please try again.');
+ }
+}
+
+function deleteTransaction(id){
+ const tx=data.transactions.find(t=>String(t.id)===String(id));if(!tx)return;
+ if(!confirm('Delete this transaction? This will reverse its effect on your simulated balance.'))return;
+ const before=JSON.parse(JSON.stringify(data));
+ try{data.transactions=data.transactions.filter(t=>String(t.id)!==String(id));data.balance=Math.round((Number(data.balance)-Number(tx.amount))*100)/100;persist();}
+ catch(err){data=before;showToast('Unable to delete transaction.');return;}
+ closeTxMenu();render();showToast('Transaction deleted.');
+}
+function duplicateTransaction(id){const tx=data.transactions.find(t=>String(t.id)===String(id));if(!tx)return;const copy={...tx,id:Date.now(),title:tx.title+' (copy)',date:new Date().toISOString()};data.transactions.unshift(copy);data.balance=Math.round((data.balance+copy.amount)*100)/100;persist();render();closeTxMenu();showToast('Transaction duplicated.')}
+function attachLongPress(){document.querySelectorAll('.tx').forEach(el=>{
+ let startX=0,startY=0;
+ el.addEventListener('pointerdown',e=>{
+  if(e.button!==0)return;
+  clearTimeout(holdTimer);holdTriggered=false;
+  startX=e.clientX;startY=e.clientY;
+  const id=el.dataset.txId;
+  holdTimer=setTimeout(()=>{holdTriggered=true;showTransactionMenu(id)},3000);
+ });
+ el.addEventListener('pointermove',e=>{if(Math.hypot(e.clientX-startX,e.clientY-startY)>12)clearTimeout(holdTimer)});
+ ['pointerup','pointerleave','pointercancel'].forEach(evt=>el.addEventListener(evt,()=>clearTimeout(holdTimer)));
+ el.addEventListener('contextmenu',e=>e.preventDefault());
+ el.addEventListener('selectstart',e=>e.preventDefault());
+})}
+function openNewPayment(){showView('newpayment')}
+function startPayment(type){showView('payments');openPaymentForm(type)}
+let payidMode='mobile';
+function openPayIDEntry(){const first=document.querySelector('.payid-tabs button');setPayIDTab(first,'mobile');showView('payidentry');document.getElementById('payidEntryInput').focus()}
+function setPayIDTab(button,mode){payidMode=mode;document.querySelectorAll('.payid-tabs button').forEach(b=>b.classList.toggle('selected',b===button));const inp=document.getElementById('payidEntryInput');inp.value='';inp.type=mode==='email'?'email':'text';inp.inputMode=mode==='mobile'?'tel':'text';inp.placeholder='';const typeLabel=mode==='mobile'?'Mobile number':mode==='email'?'Email address':'PayID identifier';document.getElementById('payidEntryLabel').textContent=typeLabel;inp.setAttribute('aria-label',typeLabel);validatePayIDEntry();inp.focus()}
+function validatePayIDEntry(){const v=document.getElementById('payidEntryInput').value.trim();document.getElementById('payidContinue').disabled=payidMode==='mobile'?v.replace(/\D/g,'').length<9:payidMode==='email'?!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v):v.length<3}
+let flow={payid:'',name:'',amount:0,message:'',reference:'',paymentId:''};
+function continuePayID(){const value=document.getElementById('payidEntryInput').value.trim();if(!value)return;flow={payid:value,name:'',amount:0,message:'',reference:'',paymentId:''};document.getElementById('flowPayID').textContent=value;document.getElementById('flowRecipientName').value='';validateFlowName();showView('payidverify')}
+function validateFlowName(){document.getElementById('flowNameContinue').disabled=!document.getElementById('flowRecipientName').value.trim()}
+function goFlowAmount(){flow.name=document.getElementById('flowRecipientName').value.trim();if(!flow.name)return;document.getElementById('flowAmountName').textContent=flow.name;document.getElementById('flowAvatar').textContent=flow.name.split(/\s+/).map(w=>w[0]).slice(0,3).join('').toUpperCase();document.getElementById('flowAmount').value='';document.getElementById('flowMessage').value='';document.getElementById('flowAccountLabel').textContent='Everyday: '+money(data.balance);validateFlowAmount();showView('payidamount')}
+function validateFlowAmount(){const a=Number(document.getElementById('flowAmount').value);document.getElementById('flowAmountContinue').disabled=!(a>0&&a<=data.balance)}
+function goFlowReview(){flow.amount=Number(document.getElementById('flowAmount').value);if(!(flow.amount>0&&flow.amount<=data.balance)){showToast('Enter an amount within the wallet balance.');return}flow.message=document.getElementById('flowMessage').value.trim();document.getElementById('flowReviewName').textContent=flow.name;document.getElementById('flowReviewID').textContent=flow.payid;document.getElementById('flowReviewAmount').textContent=money(flow.amount);document.getElementById('flowReference').value='';renderPaymentBrand();showView('payidreview')}
+function finishFlowPayment(){if(!(flow.amount>0&&flow.amount<=data.balance)){showToast('Insufficient wallet balance.');return}flow.reference=document.getElementById('flowReference').value.trim();flow.paymentId=String(Date.now()).slice(-8);data.balance=Math.round((data.balance-flow.amount)*100)/100;data.transactions.unshift({id:Date.now(),title:flow.name,detail:flow.payid+(flow.reference?' · '+flow.reference:''),date:new Date().toISOString(),amount:-flow.amount});persist();document.getElementById('flowReceiptTitle').textContent='Payment to '+flow.name;document.getElementById('flowReceiptDate').textContent=new Date().toLocaleString('en-AU',{dateStyle:'full',timeStyle:'short'});document.getElementById('flowReceiptAmount').textContent=money(flow.amount);document.getElementById('flowReceiptDetails').innerHTML='From: <strong>Everyday</strong><br>To: <strong>'+escapeHTML(flow.name)+'</strong><br>PayID: <strong>'+escapeHTML(flow.payid)+'</strong><br>Reference number: <strong>'+escapeHTML(flow.paymentId)+'</strong>';document.getElementById('flowSaveContact').checked=true;renderPaymentBrand();showView('payidreceipt')}
+function doneFlowPayment(){if(document.getElementById('flowSaveContact').checked){data.quickPay=[...new Set([...(data.quickPay||[]),flow.name])].slice(0,8);persist()}showView('payments')}
+function shareFlowReceipt(){const msg='FICTIONAL PAYMENT — NO MONEY TRANSFERRED\n'+flow.name+'\n'+money(flow.amount)+'\n'+flow.payid+'\nReference: '+flow.paymentId;if(navigator.share){navigator.share({text:msg}).catch(()=>{})}else if(navigator.clipboard){navigator.clipboard.writeText(msg).then(()=>showToast('Fictional receipt copied.')).catch(()=>showToast('Sharing unavailable.'))}else showToast('Sharing unavailable.')}
+function renderPaymentBrand(){const html=data.paymentBrand?'<img src="'+data.paymentBrand+'" alt="Custom payment symbol">':'<span style="color:#3298fa;font-size:24px">✦</span>';['flowBrandReview','flowBrandReceipt','paymentBrandPreview'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=html})}
+function uploadPaymentBrand(event){const file=event.target.files[0];if(!file)return;if(!file.type.startsWith('image/')||file.size>2*1024*1024){showToast('Choose an image under 2 MB.');return}const reader=new FileReader();reader.onload=()=>{data.paymentBrand=reader.result;persist();renderPaymentBrand();showToast('Payment symbol saved.')};reader.readAsDataURL(file)}
+function resetPaymentBrand(){data.paymentBrand='';persist();renderPaymentBrand();showToast('Payment symbol reset.')}
+
+function switchSupport(button,tab){document.querySelectorAll('#support .segmented button').forEach(b=>b.classList.toggle('selected',b===button));document.getElementById('supportHero').textContent=tab==='learn'?'Explore wallet guides':'How can we help?'}
+function renderPaymentContacts(){const names=data.quickPay||['Mum','Dad','Alex'];document.getElementById('paymentContactList').innerHTML=names.map(n=>`<button class="list-row" data-payment-contact="${escapeHTML(n)}"><span class="row-symbol">◉</span><span class="row-copy">${escapeHTML(n)}<small>Saved contact</small></span><span class="chevron">›</span></button>`).join('');document.querySelectorAll('[data-payment-contact]').forEach(el=>el.addEventListener('click',()=>{startPayment('payid');document.getElementById('recipient').value=el.dataset.paymentContact}))}
+const originalRender=render;render=function(){originalRender();renderPayments();renderPaymentContacts();attachLongPress()};
+render();changePaymentType();renderPaymentBrand();
+</script>
+<script>document.addEventListener('gesturestart',e=>e.preventDefault(),{passive:false});document.addEventListener('gesturechange',e=>e.preventDefault(),{passive:false});</script></body>
+</html>
