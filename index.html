@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="ANZ">
   <meta name="theme-color" content="#050505">
   <title>LARP Wallet</title>
   <style>
@@ -194,8 +198,30 @@ button:active:not(:disabled){opacity:.92}
 .overview-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 
 html, body { touch-action: pan-x pan-y; }
+
+/* App shell: fixed header + nav, only the middle scrolls (feels like a native app). */
+html,body{height:100%;overflow:hidden;overscroll-behavior:none;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;scroll-behavior:auto}
+input,textarea,select{-webkit-user-select:text;user-select:text}
+.app{height:100dvh;min-height:0!important;display:flex;flex-direction:column;overflow:hidden;padding-bottom:0!important}
+header{flex:none;padding-top:max(10px,env(safe-area-inset-top,0px))!important;padding-bottom:2px!important}
+main{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-top:8px!important;padding-bottom:calc(92px + env(safe-area-inset-bottom,0px))!important}
+.flow-screen{min-height:calc(100dvh - 170px)!important}
+main,.app,html,body{scrollbar-width:none;-ms-overflow-style:none}
+main::-webkit-scrollbar,.app::-webkit-scrollbar,html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
+/* Tighter home screen so it fits on one screen. */
+.home-top{margin:4px auto 14px!important}
+.home-top button{padding:9px 20px!important}
+.balance-wrap{margin-bottom:14px!important}
+.balance{font-size:38px!important}
+.overview-card{min-height:128px!important;padding:11px 9px!important}
+.bubble-chart,.bar-chart{transform:scale(.8);transform-origin:center bottom;height:66px!important}
+.overview-grid{margin-bottom:10px!important}
+.upcoming{margin:10px 0 16px!important;padding:11px 16px!important}
+.payments-top{margin-bottom:20px!important}
+.pay-actions{margin-bottom:18px!important}
 </style>
 <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
+<link rel="icon" type="image/png" href="./apple-touch-icon.png">
 </head>
 <body>
 <div class="app">
@@ -373,7 +399,7 @@ function showView(id){
   document.getElementById('customSimulationText').value=data.simulationMessage??'This is a simulation. No actual money is transferred.';
   document.getElementById('customSimulationColor').value=/^#[0-9a-fA-F]{6}$/.test(data.simulationColor||'')?data.simulationColor:'#aeb7c4';
  }
- window.scrollTo(0,0);
+ const mainEl=document.querySelector("main");if(mainEl)mainEl.scrollTop=0;window.scrollTo(0,0);
  render();
  if(changed){
   // Restart animation only on the newly opened content; never animate header or nav.
@@ -397,7 +423,7 @@ function submitPayment(){const type=document.getElementById('paymentType').value
  data.balance=Math.round((Number(data.balance)+delta)*100)/100;data.transactions.unshift({id:Date.now(),title,detail,status:'Completed',date:new Date().toISOString(),amount:delta});persist();clearPayment();closePaymentForm();render();showToast('Payment completed.')}
 function txMarkup(tx){const incoming=tx.amount>0;return `<div class="tx" data-tx-id="${tx.id}" onclick="transactionTap(event, '${tx.id}')"><div class="tx-icon">${incoming?'↙':'↗'}</div><div class="tx-info"><div class="tx-title">${escapeHTML(tx.title)}</div><div class="tx-date">${escapeHTML(tx.detail||'Wallet transaction')} · ${new Date(tx.date).toLocaleString('en-AU',{dateStyle:'medium',timeStyle:'short'})}</div></div><div class="tx-amount ${incoming?'positive':'negative'}">${incoming?'+':'−'}${money(Math.abs(tx.amount))}</div></div>`}
 function escapeHTML(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function render(){renderSimulationMessage();document.getElementById('homeBalance').textContent=money(data.balance);document.getElementById('accountsBalance').textContent=money(data.balance);document.getElementById('everydayBalance').textContent=money(data.balance);document.getElementById('accountGroupTitle').textContent=data.name;const outgoing=data.transactions.filter(t=>t.amount<0).reduce((a,t)=>a+Math.abs(t.amount),0);document.getElementById('spendingTotal').textContent=money(outgoing);document.getElementById('upcomingTotal').textContent=money(outgoing*.19);document.getElementById('homeTransactions').innerHTML=data.transactions.length?data.transactions.slice(0,5).map(txMarkup).join(''):'<div class="empty">No transactions yet.</div>';document.getElementById('allTransactions').innerHTML=data.transactions.length?data.transactions.map(txMarkup).join(''):'<div class="empty">No transactions yet.</div>';document.getElementById('headerName').textContent=data.name;document.title=data.name;const logoHTML=data.logo?`<img src="${data.logo}" alt="Custom wallet logo">`:escapeHTML((data.name||'L').charAt(0).toUpperCase());document.getElementById('headerLogo').innerHTML=logoHTML;document.getElementById('logoPreview').innerHTML=logoHTML;document.getElementById('customName').value=data.name;document.documentElement.style.setProperty('--logo-size',(data.logoSize||42)+'px');document.getElementById('logoSize').value=data.logoSize||42;document.getElementById('logoSizeLabel').textContent=(data.logoSize||42)+' px'}
+function render(){renderSimulationMessage();document.getElementById('homeBalance').textContent=money(data.balance);document.getElementById('accountsBalance').textContent=money(data.balance);document.getElementById('everydayBalance').textContent=money(data.balance);document.getElementById('accountGroupTitle').textContent=data.name;const outgoing=data.transactions.filter(t=>t.amount<0).reduce((a,t)=>a+Math.abs(t.amount),0);document.getElementById('spendingTotal').textContent=money(outgoing);document.getElementById('upcomingTotal').textContent=money(outgoing*.19);document.getElementById('homeTransactions').innerHTML=data.transactions.length?data.transactions.slice(0,3).map(txMarkup).join(''):'<div class="empty">No transactions yet.</div>';document.getElementById('allTransactions').innerHTML=data.transactions.length?data.transactions.map(txMarkup).join(''):'<div class="empty">No transactions yet.</div>';document.getElementById('headerName').textContent=data.name;document.title=data.name;const logoHTML=data.logo?`<img src="${data.logo}" alt="Custom wallet logo">`:escapeHTML((data.name||'L').charAt(0).toUpperCase());document.getElementById('headerLogo').innerHTML=logoHTML;document.getElementById('logoPreview').innerHTML=logoHTML;document.getElementById('customName').value=data.name;document.documentElement.style.setProperty('--logo-size',(data.logoSize||42)+'px');document.getElementById('logoSize').value=data.logoSize||42;document.getElementById('logoSizeLabel').textContent=(data.logoSize||42)+' px'}
 function uploadLogo(event){const file=event.target.files[0];if(!file)return;if(!file.type.startsWith('image/')){showToast('Choose an image file.');return}if(file.size>3*1024*1024){showToast('Please choose an image under 3 MB.');return}const reader=new FileReader();reader.onload=()=>{pendingLogo=reader.result;document.getElementById('logoPreview').innerHTML=`<img src="${pendingLogo}" alt="Logo preview">`;showToast('Photo selected. Save changes to apply.')};reader.readAsDataURL(file)}
 function saveBranding(){const name=document.getElementById('customName').value.trim();if(!name){showToast('Enter a wallet name.');return}data.name=name;data.logo=pendingLogo;persist();render();showToast('Appearance saved.')}
 function resetLogo(){pendingLogo='';data.logo='';persist();render();showToast('Logo reset.')}
